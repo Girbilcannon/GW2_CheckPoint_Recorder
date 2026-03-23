@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GW2 Checkpoint Recorder v1</title>
+  <style>
+    :root {
+      --bg: #111418;
+      --panel: #1a1f26;
+      --panel-2: #232a33;
+      --text: #e8edf2;
+      --muted: #9fb0c2;
+      --accent: #e0b84d;
+      --accent-2: #f3d98d;
+      --danger: #d96a6a;
+      --border: #343d47;
+      --good: #7fc68d;
+      --link: --muted;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    body a:link {
+      color: var(--link);
+    }
+
+    body a:visited {
+      color: var(--link);
+    }
+
+    .wrap {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+
+    .sub {
+      color: var(--muted);
+      margin-bottom: 18px;
+      line-height: 1.45;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.4fr 120px 120px 120px 1fr;
+      gap: 12px;
+      align-items: end;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input[type="text"], input[type="number"], textarea, select {
+      width: 100%;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 10px 12px;
+      outline: none;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 72px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button:hover {
+      border-color: var(--accent);
+    }
+
+    .primary {
+      background: #3a2f12;
+      border-color: #6a5420;
+      color: var(--accent-2);
+    }
+
+    .danger {
+      color: #ffd9d9;
+      border-color: #7b3f3f;
+      background: #3a2020;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+      min-height: 18px;
+    }
+
+    .status.good { color: var(--good); }
+    .status.bad { color: #ffb1b1; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      table-layout: fixed;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 10px 8px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    td input[type="text"] {
+      min-width: 0;
+    }
+
+    .num {
+      font-family: Consolas, monospace;
+      font-size: 13px;
+    }
+
+    .small-btn {
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .topline {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .pill {
+      font-size: 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 10px;
+      color: var(--muted);
+      background: var(--panel-2);
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>GW2 Checkpoint Recorder</h1>
+    <div class="sub">
+      <strong>v1.0  •  Girbilcannon.8259</strong><br>
+      Works directly with <a href="https://github.com/Girbilcannon/GW2TelemetryHUD/releases" target="_blank">GW2 Telemetry HUD</a>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <div>
+          <label for="endpoint">Telemetry endpoint</label>
+          <input id="endpoint" type="text" value="http://localhost:61338/mumble" />
+        </div>
+        <div>
+          <label for="mapIdOverride">Map ID override</label>
+          <input id="mapIdOverride" type="number" placeholder="optional" />
+        </div>
+        <div>
+          <label for="defaultPrefix">Label prefix</label>
+          <input id="defaultPrefix" type="text" value="CP" />
+        </div>
+        <div>
+          <label for="precision">Decimals</label>
+          <input id="precision" type="number" min="0" max="8" value="3" />
+        </div>
+        <div>
+          <label for="defaultNote">Default note text</label>
+          <input id="defaultNote" type="text" placeholder="optional" />
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <button id="testBtn">Test Endpoint</button>
+        <button id="captureBtn" class="primary">Capture Checkpoint</button>
+        <button id="saveLocalBtn">Save Browser Copy</button>
+        <button id="loadLocalBtn">Load Browser Copy</button>
+        <button id="exportCsvBtn">Export CSV</button>
+        <button id="exportXmlBtn">Export XML</button>
+        <button id="clearBtn" class="danger">Clear All</button>
+      </div>
+
+      <div id="status" class="status">Ready.</div>
+      <div class="hint">
+        Tip: Use the <strong>Save Browser Copy</strong> button to save your work without exporting. If you refresh the page simply
+        use the <strong>Load Browser Copy</strong> button to pick up where you left off.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="topline">
+        <div><strong>Recorded checkpoints</strong></div>
+        <div class="pill"><span id="rowCount">0</span> rows</div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:70px;">#</th>
+            <th style="width:130px;">Label</th>
+            <th style="width:100px;">Map ID</th>
+            <th style="width:140px;">X</th>
+            <th style="width:140px;">Y</th>
+            <th style="width:140px;">Z</th>
+            <th style="width:190px;">Timestamp</th>
+            <th>Note</th>
+            <th style="width:90px;">Action</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      checkpoints: []
+    };
+
+    const endpointEl = document.getElementById("endpoint");
+    const mapIdOverrideEl = document.getElementById("mapIdOverride");
+    const defaultPrefixEl = document.getElementById("defaultPrefix");
+    const precisionEl = document.getElementById("precision");
+    const defaultNoteEl = document.getElementById("defaultNote");
+    const rowsEl = document.getElementById("rows");
+    const rowCountEl = document.getElementById("rowCount");
+    const statusEl = document.getElementById("status");
+
+    document.getElementById("testBtn").addEventListener("click", testEndpoint);
+    document.getElementById("captureBtn").addEventListener("click", captureCheckpoint);
+    document.getElementById("saveLocalBtn").addEventListener("click", saveLocal);
+    document.getElementById("loadLocalBtn").addEventListener("click", loadLocal);
+    document.getElementById("exportCsvBtn").addEventListener("click", exportCsv);
+    document.getElementById("exportXmlBtn").addEventListener("click", exportXml);
+    document.getElementById("clearBtn").addEventListener("click", clearAll);
+
+    function setStatus(message, type = "") {
+      statusEl.textContent = message;
+      statusEl.className = "status" + (type ? " " + type : "");
+    }
+
+    function getPrecision() {
+      const value = parseInt(precisionEl.value, 10);
+      return Number.isFinite(value) ? Math.max(0, Math.min(8, value)) : 3;
+    }
+
+    function roundValue(value) {
+      const p = getPrecision();
+      const n = Number(value);
+      return Number.isFinite(n) ? Number(n.toFixed(p)) : 0;
+    }
+
+    function formatLocalTimestamp(date = new Date()) {
+      const pad = n => String(n).padStart(2, "0");
+      return [
+        date.getFullYear(),
+        "-",
+        pad(date.getMonth() + 1),
+        "-",
+        pad(date.getDate()),
+        " ",
+        pad(date.getHours()),
+        ":",
+        pad(date.getMinutes()),
+        ":",
+        pad(date.getSeconds())
+      ].join("");
+    }
+
+    async function fetchTelemetry() {
+      const url = endpointEl.value.trim();
+      if (!url) throw new Error("Telemetry endpoint is empty.");
+
+      const response = await fetch(url, {
+        method: "GET",
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        throw new Error("Endpoint returned HTTP " + response.status + ".");
+      }
+
+      return await response.json();
+    }
+
+    function extractPosition(data) {
+      if (!data || typeof data !== "object") {
+        throw new Error("Telemetry response was not an object.");
+      }
+
+      const direct = data.position;
+      const nested = data.mumble && data.mumble.position;
+
+      const pos = direct || nested;
+      if (!pos || typeof pos !== "object") {
+        throw new Error("Could not find position in telemetry JSON.");
+      }
+
+      const x = roundValue(pos.x);
+      const y = roundValue(pos.y);
+      const z = roundValue(pos.z);
+
+      if (![x, y, z].every(Number.isFinite)) {
+        throw new Error("Position values were invalid.");
+      }
+
+      const mapId =
+        mapIdOverrideEl.value.trim() ||
+        data.mapId ||
+        (data.mumble && data.mumble.mapId) ||
+        "";
+
+      return { x, y, z, mapId };
+    }
+
+    function render() {
+      rowsEl.innerHTML = "";
+      rowCountEl.textContent = state.checkpoints.length;
+
+      state.checkpoints.forEach((cp, index) => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td class="num">${index + 1}</td>
+          <td><input type="text" value="${escapeHtml(cp.label)}" data-field="label" data-index="${index}"></td>
+          <td><input type="text" value="${escapeHtml(String(cp.mapId ?? ""))}" data-field="mapId" data-index="${index}"></td>
+          <td><input type="text" class="num" value="${escapeHtml(String(cp.x))}" data-field="x" data-index="${index}"></td>
+          <td><input type="text" class="num" value="${escapeHtml(String(cp.y))}" data-field="y" data-index="${index}"></td>
+          <td><input type="text" class="num" value="${escapeHtml(String(cp.z))}" data-field="z" data-index="${index}"></td>
+          <td class="num">${escapeHtml(cp.timestamp)}</td>
+          <td><input type="text" value="${escapeHtml(cp.note || "")}" data-field="note" data-index="${index}"></td>
+          <td><button class="small-btn danger" data-delete="${index}">Delete</button></td>
+        `;
+
+        rowsEl.appendChild(tr);
+      });
+
+      rowsEl.querySelectorAll("input[data-field]").forEach(input => {
+        input.addEventListener("input", onEditField);
+      });
+
+      rowsEl.querySelectorAll("button[data-delete]").forEach(button => {
+        button.addEventListener("click", () => {
+          const index = Number(button.getAttribute("data-delete"));
+          state.checkpoints.splice(index, 1);
+          normalizeLabels();
+          render();
+        });
+      });
+    }
+
+    function onEditField(event) {
+      const input = event.target;
+      const index = Number(input.dataset.index);
+      const field = input.dataset.field;
+      if (!state.checkpoints[index]) return;
+
+      if (["x", "y", "z"].includes(field)) {
+        const n = Number(input.value);
+        state.checkpoints[index][field] = Number.isFinite(n) ? n : input.value;
+      } else {
+        state.checkpoints[index][field] = input.value;
+      }
+    }
+
+    function normalizeLabels() {
+      const prefix = (defaultPrefixEl.value || "CP").trim() || "CP";
+      state.checkpoints.forEach((cp, index) => {
+        if (!cp.label || /^CP\s*\d+$/i.test(cp.label) || new RegExp("^" + escapeRegex(prefix) + "\\s*\\d+$", "i").test(cp.label)) {
+          cp.label = `${prefix} ${index + 1}`;
+        }
+      });
+    }
+
+    async function testEndpoint() {
+      try {
+        setStatus("Testing endpoint...");
+        const data = await fetchTelemetry();
+        const pos = extractPosition(data);
+        setStatus(`Endpoint OK. Map ${pos.mapId || "?"} | X ${pos.x} | Y ${pos.y} | Z ${pos.z}`, "good");
+      } catch (error) {
+        setStatus("Test failed: " + error.message, "bad");
+      }
+    }
+
+    async function captureCheckpoint() {
+      try {
+        setStatus("Capturing checkpoint...");
+        const data = await fetchTelemetry();
+        const pos = extractPosition(data);
+        const prefix = (defaultPrefixEl.value || "CP").trim() || "CP";
+        const note = defaultNoteEl.value || "";
+
+        state.checkpoints.push({
+          label: `${prefix} ${state.checkpoints.length + 1}`,
+          mapId: pos.mapId,
+          x: pos.x,
+          y: pos.y,
+          z: pos.z,
+          timestamp: formatLocalTimestamp(),
+          note: note
+        });
+
+        render();
+        setStatus(`Captured ${state.checkpoints[state.checkpoints.length - 1].label} at ${pos.x}, ${pos.y}, ${pos.z}`, "good");
+      } catch (error) {
+        setStatus("Capture failed: " + error.message, "bad");
+      }
+    }
+
+    function saveLocal() {
+      localStorage.setItem("gw2-checkpoint-recorder", JSON.stringify(state.checkpoints));
+      setStatus("Saved a browser copy of the current checkpoint list.", "good");
+    }
+
+    function loadLocal() {
+      const raw = localStorage.getItem("gw2-checkpoint-recorder");
+      if (!raw) {
+        setStatus("No browser save was found.", "bad");
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(raw);
+        state.checkpoints = Array.isArray(parsed) ? parsed : [];
+        render();
+        setStatus("Loaded checkpoint list from browser storage.", "good");
+      } catch (error) {
+        setStatus("Could not load browser save: " + error.message, "bad");
+      }
+    }
+
+    function clearAll() {
+      if (!confirm("Clear all recorded checkpoints?")) return;
+      state.checkpoints = [];
+      render();
+      setStatus("Cleared all checkpoints.");
+    }
+
+    function escapeXml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&apos;");
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function escapeRegex(value) {
+      return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    function downloadText(filename, content, mimeType) {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportCsv() {
+      if (!state.checkpoints.length) {
+        setStatus("There are no checkpoints to export.", "bad");
+        return;
+      }
+
+      const lines = [
+        ["Index", "Label", "MapId", "X", "Y", "Z", "Timestamp", "Note"].join(",")
+      ];
+
+      state.checkpoints.forEach((cp, index) => {
+        const values = [
+          index + 1,
+          cp.label,
+          cp.mapId,
+          cp.x,
+          cp.y,
+          cp.z,
+          cp.timestamp,
+          cp.note || ""
+        ].map(value => {
+          const s = String(value ?? "");
+          return '"' + s.replaceAll('"', '""') + '"';
+        });
+
+        lines.push(values.join(","));
+      });
+
+      downloadText("gw2_checkpoints.csv", lines.join("\r\n"), "text/csv;charset=utf-8");
+      setStatus("Exported CSV.", "good");
+    }
+
+    function exportXml() {
+      if (!state.checkpoints.length) {
+        setStatus("There are no checkpoints to export.", "bad");
+        return;
+      }
+
+      const rootMapId = state.checkpoints[0].mapId || "";
+      const xml = [
+        '<?xml version="1.0" encoding="utf-8"?>',
+        `<Checkpoints mapId="${escapeXml(rootMapId)}">`,
+        ...state.checkpoints.map((cp, index) =>
+          `  <checkpoint index="${index + 1}" label="${escapeXml(cp.label)}" mapId="${escapeXml(cp.mapId)}" x="${escapeXml(cp.x)}" y="${escapeXml(cp.y)}" z="${escapeXml(cp.z)}" timestamp="${escapeXml(cp.timestamp)}" note="${escapeXml(cp.note || "")}" />`
+        ),
+        `</Checkpoints>`
+      ].join("\n");
+
+      downloadText("gw2_checkpoints.xml", xml, "application/xml;charset=utf-8");
+      setStatus("Exported XML.", "good");
+    }
+
+    render();
+  </script>
+</body>
+</html>

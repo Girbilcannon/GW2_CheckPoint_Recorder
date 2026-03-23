@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GW2 Checkpoint Recorder v1.1</title>
+  <title>GW2 Checkpoint Recorder v1.2</title>
   <style>
     :root {
       --bg: #111418;
@@ -37,7 +37,7 @@
     }
 
     .wrap {
-      max-width: 1280px;
+      max-width: 1560px;
       margin: 0 auto;
       padding: 20px;
     }
@@ -63,7 +63,7 @@
 
     .grid {
       display: grid;
-      grid-template-columns: 1.4fr 120px 120px 120px 1fr;
+      grid-template-columns: 1.4fr 120px 120px 120px 140px 140px;
       gap: 12px;
       align-items: end;
     }
@@ -155,6 +155,7 @@
 
     td input[type="text"] {
       min-width: 0;
+      width: 100%;
     }
 
     .num {
@@ -212,7 +213,7 @@
   <div class="wrap">
     <h1>GW2 Checkpoint Recorder</h1>
     <div class="sub">
-      <strong>v1.1  •  Girbilcannon.8259</strong><br>
+      <strong>v1.2  •  Girbilcannon.8259</strong><br>
       Works directly with <a href="https://github.com/Girbilcannon/GW2TelemetryHUD/releases" target="_blank">GW2 Telemetry HUD</a>
     </div>
 
@@ -232,11 +233,15 @@
         </div>
         <div>
           <label for="precision">Decimals</label>
-          <input id="precision" type="number" min="0" max="8" value="3" />
+          <input id="precision" type="number" min="0" max="8" value="5" />
         </div>
         <div>
-          <label for="defaultNote">Default note text</label>
-          <input id="defaultNote" type="text" placeholder="optional" />
+          <label for="defaultRadius">Default radius</label>
+          <input id="defaultRadius" type="number" value="10" />
+        </div>
+        <div>
+          <label for="defaultAngle">Default angle</label>
+          <input id="defaultAngle" type="number" value="-1" />
         </div>
       </div>
 
@@ -252,6 +257,13 @@
 
       <div id="status" class="status">Ready.</div>
       <div class="hint">
+        <p><ul>
+          <li>This tool outputs checkpoint markers as CSV for <a href="https://www.beetlerank.com" target="_blank">BeetleRank.com</a> or as
+          XML for alternate uses.</li>
+          <li>Notes only apply to XML output.</li>
+          <li>Changing a label to "reset" will output as -1 in the CSV.</li>
+          <li>For angle, use values of 0-360, or -1 for horizontal.</li>
+          </ul></p>
         Tip: Use the <strong>Save Browser Copy</strong> button to save your work without exporting. If you refresh the page simply
         use the <strong>Load Browser Copy</strong> button to pick up where you left off.
       </div>
@@ -266,14 +278,16 @@
       <table>
         <thead>
           <tr>
-            <th style="width:70px;">#</th>
-            <th style="width:130px;">Label</th>
-            <th style="width:100px;">Map ID</th>
-            <th style="width:140px;">X</th>
-            <th style="width:140px;">Y</th>
-            <th style="width:140px;">Z</th>
-            <th style="width:190px;">Timestamp</th>
-            <th>Note</th>
+            <th style="width:40px;">#</th>
+            <th style="width:80px;">Label</th>
+            <th style="width:60px;">Map ID</th>
+            <th style="width:100px;">X</th>
+            <th style="width:100px;">Y</th>
+            <th style="width:100px;">Z</th>
+            <th style="width:100px;">Timestamp</th>
+            <th style="width:60px;">Radius</th>
+            <th style="width:60px;">Angle</th>
+            <th style="width:150px;">Note</th>
             <th style="width:90px;">Action</th>
           </tr>
         </thead>
@@ -291,7 +305,8 @@
     const mapIdOverrideEl = document.getElementById("mapIdOverride");
     const defaultPrefixEl = document.getElementById("defaultPrefix");
     const precisionEl = document.getElementById("precision");
-    const defaultNoteEl = document.getElementById("defaultNote");
+    const defaultRadiusEl = document.getElementById("defaultRadius");
+    const defaultAngleEl = document.getElementById("defaultAngle");
     const rowsEl = document.getElementById("rows");
     const rowCountEl = document.getElementById("rowCount");
     const statusEl = document.getElementById("status");
@@ -318,6 +333,16 @@
       const p = getPrecision();
       const n = Number(value);
       return Number.isFinite(n) ? Number(n.toFixed(p)) : 0;
+    }
+
+    function getDefaultRadius() {
+      const n = Number(defaultRadiusEl.value);
+      return Number.isFinite(n) ? n : 10;
+    }
+
+    function getDefaultAngle() {
+      const n = Number(defaultAngleEl.value);
+      return Number.isFinite(n) ? n : -1;
     }
 
     function formatLocalTimestamp(date = new Date()) {
@@ -391,13 +416,15 @@
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
-          <td class="num">${index + 1}</td>
+          <td class="num">${index}</td>
           <td><input type="text" value="${escapeHtml(cp.label)}" data-field="label" data-index="${index}"></td>
           <td><input type="text" value="${escapeHtml(String(cp.mapId ?? ""))}" data-field="mapId" data-index="${index}"></td>
           <td><input type="text" class="num" value="${escapeHtml(String(cp.x))}" data-field="x" data-index="${index}"></td>
           <td><input type="text" class="num" value="${escapeHtml(String(cp.y))}" data-field="y" data-index="${index}"></td>
           <td><input type="text" class="num" value="${escapeHtml(String(cp.z))}" data-field="z" data-index="${index}"></td>
           <td class="num">${escapeHtml(cp.timestamp)}</td>
+          <td><input type="text" class="num" value="${escapeHtml(String(cp.radius ?? 10))}" data-field="radius" data-index="${index}"></td>
+          <td><input type="text" class="num" value="${escapeHtml(String(cp.angle ?? -1))}" data-field="angle" data-index="${index}"></td>
           <td><input type="text" value="${escapeHtml(cp.note || "")}" data-field="note" data-index="${index}"></td>
           <td><button class="small-btn danger" data-delete="${index}">Delete</button></td>
         `;
@@ -425,7 +452,7 @@
       const field = input.dataset.field;
       if (!state.checkpoints[index]) return;
 
-      if (["x", "y", "z"].includes(field)) {
+      if (["x", "y", "z", "radius", "angle"].includes(field)) {
         const n = Number(input.value);
         state.checkpoints[index][field] = Number.isFinite(n) ? n : input.value;
       } else {
@@ -436,8 +463,13 @@
     function normalizeLabels() {
       const prefix = (defaultPrefixEl.value || "CP").trim() || "CP";
       state.checkpoints.forEach((cp, index) => {
-        if (!cp.label || /^CP\s*\d+$/i.test(cp.label) || new RegExp("^" + escapeRegex(prefix) + "\\s*\\d+$", "i").test(cp.label)) {
-          cp.label = `${prefix} ${index + 1}`;
+        const label = String(cp.label || "").trim();
+        const isStart = /^START$/i.test(label);
+        const isCp = /^CP\s*\d+$/i.test(label);
+        const isCustomPrefix = new RegExp("^" + escapeRegex(prefix) + "\\s*\\d+$", "i").test(label);
+
+        if (!cp.label || isStart || isCp || isCustomPrefix) {
+          cp.label = index === 0 ? "START" : `${prefix} ${index}`;
         }
       });
     }
@@ -459,16 +491,18 @@
         const data = await fetchTelemetry();
         const pos = extractPosition(data);
         const prefix = (defaultPrefixEl.value || "CP").trim() || "CP";
-        const note = defaultNoteEl.value || "";
+        const nextIndex = state.checkpoints.length;
 
         state.checkpoints.push({
-          label: `${prefix} ${state.checkpoints.length + 1}`,
+          label: nextIndex === 0 ? "START" : `${prefix} ${nextIndex}`,
           mapId: pos.mapId,
           x: pos.x,
           y: pos.y,
           z: pos.z,
           timestamp: formatLocalTimestamp(),
-          note: note
+          radius: getDefaultRadius(),
+          angle: getDefaultAngle(),
+          note: ""
         });
 
         render();
@@ -545,22 +579,23 @@
       }
 
       const lines = [
-        ["X", "Y", "Z", "Label", "MapId", "Timestamp", "Note"].join(",")
+        "STEP,STEPNAME,X,Y,Z,RADIUS,ANGLE"
       ];
 
-      state.checkpoints.forEach((cp) => {
+      state.checkpoints.forEach((cp, index) => {
+        const stepName = (cp.label && String(cp.label).trim()) ? cp.label : "*";
+        const radius = (cp.radius ?? 10);
+        const angle = (cp.angle ?? -1);
+        const stepValue = /^RESET$/i.test(stepName) ? -1 : index;
         const values = [
+          stepValue,
+          stepName,
           cp.x,
           cp.y,
           cp.z,
-          cp.label,
-          cp.mapId,
-          cp.timestamp,
-          cp.note || ""
-        ].map(value => {
-          const s = String(value ?? "");
-          return '"' + s.replaceAll('"', '""') + '"';
-        });
+          radius,
+          angle
+        ];
 
         lines.push(values.join(","));
       });
@@ -580,7 +615,7 @@
         '<?xml version="1.0" encoding="utf-8"?>',
         `<Checkpoints mapId="${escapeXml(rootMapId)}">`,
         ...state.checkpoints.map((cp, index) =>
-          `  <checkpoint index="${index + 1}" label="${escapeXml(cp.label)}" mapId="${escapeXml(cp.mapId)}" x="${escapeXml(cp.x)}" y="${escapeXml(cp.y)}" z="${escapeXml(cp.z)}" timestamp="${escapeXml(cp.timestamp)}" note="${escapeXml(cp.note || "")}" />`
+          `  <checkpoint index="${index + 1}" label="${escapeXml(cp.label)}" mapId="${escapeXml(cp.mapId)}" x="${escapeXml(cp.x)}" y="${escapeXml(cp.y)}" z="${escapeXml(cp.z)}" timestamp="${escapeXml(cp.timestamp)}" radius="${escapeXml(cp.radius ?? 10)}" angle="${escapeXml(cp.angle ?? -1)}" note="${escapeXml(cp.note || "")}" />`
         ),
         `</Checkpoints>`
       ].join("\n");

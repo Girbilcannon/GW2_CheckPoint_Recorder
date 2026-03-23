@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GW2 Checkpoint Recorder v1</title>
+  <title>GW2 Checkpoint Recorder v1.1</title>
   <style>
     :root {
       --bg: #111418;
@@ -212,7 +212,7 @@
   <div class="wrap">
     <h1>GW2 Checkpoint Recorder</h1>
     <div class="sub">
-      <strong>v1.0  •  Girbilcannon.8259</strong><br>
+      <strong>v1.1  •  Girbilcannon.8259</strong><br>
       Works directly with <a href="https://github.com/Girbilcannon/GW2TelemetryHUD/releases" target="_blank">GW2 Telemetry HUD</a>
     </div>
 
@@ -545,17 +545,16 @@
       }
 
       const lines = [
-        ["Index", "Label", "MapId", "X", "Y", "Z", "Timestamp", "Note"].join(",")
+        ["X", "Y", "Z", "Label", "MapId", "Timestamp", "Note"].join(",")
       ];
 
-      state.checkpoints.forEach((cp, index) => {
+      state.checkpoints.forEach((cp) => {
         const values = [
-          index + 1,
-          cp.label,
-          cp.mapId,
           cp.x,
           cp.y,
           cp.z,
+          cp.label,
+          cp.mapId,
           cp.timestamp,
           cp.note || ""
         ].map(value => {
